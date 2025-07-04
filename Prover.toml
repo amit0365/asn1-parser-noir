@@ -1,0 +1,4 @@
+[prover]
+asn1_data = [2, 1, 5] # padded automatically by Nargo; remaining bytes default to 0
+# Alternatively list full 256 elements: [2,1,5,0,0,...]
+data_length = "3"
