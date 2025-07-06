@@ -1,6 +1,6 @@
 [package]
 name = "certs_verifier"
-type = "bin"
+type = "lib"
 authors = [""]
 
 [dependencies]

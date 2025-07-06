@@ -50,8 +50,38 @@ impl Asn1Decoder {
     }
     
     // Check if one node is child of another
-    pub fn is_child_of(i: NodePtr, j: NodePtr) -> bool {
-        ((i.ixf <= j.ixs) & (j.ixl <= i.ixl)) | ((j.ixf <= i.ixs) & (i.ixl <= j.ixl))
+    pub fn is_child_of(parent: NodePtr, child: NodePtr) -> bool {
+        (parent.ixf <= child.ixs) & (child.ixl <= parent.ixl)
+    }
+    
+    // Check if one node is a DIRECT child of another (not grandchild)
+    // Simplified version: check if child starts immediately after parent's header
+    // or immediately after a sibling that's also a direct child
+    pub fn is_direct_child_of(self, parent: NodePtr, child: NodePtr) -> bool {
+        // Must be contained within parent
+        let contained = (parent.ixf <= child.ixs) & (child.ixl <= parent.ixl);
+        if !contained {
+            false
+        } else {
+            // Check if parent is constructed (can have children)
+            let is_constructed = self.data[parent.ixs] & 0x20 == 0x20;
+            if !is_constructed {
+                false
+            } else {
+                // For direct children, check if child starts at parent's first content byte
+                // or immediately after another direct child
+                let first_child = self.first_child_of(parent);
+                let is_first_child = (first_child.ixs == child.ixs) & (first_child.ixl == child.ixl);
+                
+                if is_first_child {
+                    true
+                } else {
+                    // Check if it's the second child (sibling of first child)
+                    let second_child = self.next_sibling_of(first_child);
+                    (second_child.ixs == child.ixs) & (second_child.ixl == child.ixl)
+                }
+            }
+        }
     }
     
     // Extract value of node as byte slice
